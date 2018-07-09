@@ -51,11 +51,7 @@ class MapAroundFragment : BaseFragment<MainActivity>(), OnMapReadyCallback, MapA
                         return@flatMap Observable.just(myLocation)
                     }
                     .retryWhen(RetryWithDelay(3, 300))
-                    .map({ location ->
-                        presenter.fetchLocation(location, RxGeoCoder(activity));
-                        return@map true
-                    })
-                    .subscribe({ it }, { onPlaceReceiveError(); });
+                    .subscribe({ onReceivedLocation(it!!) }, { onPlaceReceiveError(); });
         } else {
             showGpsNotReady()
             setUpMapIfNeeded()
