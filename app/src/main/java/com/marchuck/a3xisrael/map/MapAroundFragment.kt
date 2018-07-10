@@ -110,10 +110,11 @@ class MapAroundFragment : BaseFragment<MainActivity>(), OnMapReadyCallback, MapA
 
     override fun onMapReady(googleMap: GoogleMap) {
         this.googleMap = googleMap
+
     }
 
     companion object {
-        val TAG = MapAroundFragment::class.java.simpleName
+        val TAG = MapAroundFragment::class.java.simpleName!!
 
         fun newInstance(): MapAroundFragment {
             return MapAroundFragment()
