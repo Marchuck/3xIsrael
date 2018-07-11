@@ -1,13 +1,11 @@
 package com.marchuck.a3xisrael.map
 
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -34,9 +32,7 @@ class MapAroundFragment : BaseFragment<MainActivity>(), OnMapReadyCallback, MapA
 
     var googleMap: GoogleMap? = null
 
-    @SuppressLint("MissingPermission")
     fun findMeClicked() {
-//        Toast.makeText(context, "Feature not ready", Toast.LENGTH_SHORT).show()
         presenter.singleShot()
     }
 
@@ -102,9 +98,7 @@ class MapAroundFragment : BaseFragment<MainActivity>(), OnMapReadyCallback, MapA
         lastIndexInUse = index
         val dialog = MoveNukeBottomDialog()
         dialog.show(getParentActivity().supportFragmentManager, dialog.TAG)
-
     }
-
 
     override fun onResume() {
         super.onResume()
@@ -119,7 +113,6 @@ class MapAroundFragment : BaseFragment<MainActivity>(), OnMapReadyCallback, MapA
     }
 
     override fun onMoveNuke(direction: NukeDirection) {
-        println("onMoveNuke $direction")
         presenter.moveNuke(lastIndexInUse, direction)
     }
 
@@ -131,7 +124,6 @@ class MapAroundFragment : BaseFragment<MainActivity>(), OnMapReadyCallback, MapA
         finMeClicked.post({ showMessage("Failed to move nuke, try again later") })
     }
 
-
     companion object {
         val TAG = MapAroundFragment::class.java.simpleName
 
@@ -139,5 +131,4 @@ class MapAroundFragment : BaseFragment<MainActivity>(), OnMapReadyCallback, MapA
             return MapAroundFragment()
         }
     }
-
 }
