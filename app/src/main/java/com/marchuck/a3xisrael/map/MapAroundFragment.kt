@@ -1,85 +1,58 @@
 package com.marchuck.a3xisrael.map
 
-import android.Manifest
+
 import android.annotation.SuppressLint
-import android.location.Location
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-
-
-import com.google.android.gms.maps.CameraUpdateFactory
+import android.widget.Toast
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.marchuck.a3xisrael.MainActivity
 import com.marchuck.a3xisrael.R
+import com.marchuck.a3xisrael.api.NukeDirection
 import com.marchuck.a3xisrael.base.BaseFragment
-import com.tbruyelle.rxpermissions2.RxPermissions
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
+import com.marchuck.a3xisrael.bomb.BombsPlacement
+import com.marchuck.a3xisrael.moveNuke.MoveNukeListener
+import pl.marchuck.cryptoapp.receive.chooseAccount.MoveNukeBottomDialog
+import java.util.*
 
-import java.util.Random
 
-class MapAroundFragment : BaseFragment<MainActivity>(), OnMapReadyCallback, MapAroundView {
+class MapAroundFragment : BaseFragment<MainActivity>(), OnMapReadyCallback, MapAroundView, MoveNukeListener {
 
     lateinit var finMeClicked: TextView
 
-    internal val mapFragment: SupportMapFragment by lazy { SupportMapFragment() }
+    internal var mapFragment: SupportMapFragment? = null
+
+    internal var lastIndexInUse: Int? = null
+
     internal val presenter: MapAroundPresenter by lazy { MapAroundPresenter() }
-    internal var googleMap: GoogleMap? = null
+
+    var googleMap: GoogleMap? = null
 
     @SuppressLint("MissingPermission")
     fun findMeClicked() {
-
-        if (googleMap != null) {
-
-            RxPermissions(getParentActivity())
-                    .request(Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .flatMap {
-                        googleMap?.isMyLocationEnabled = true
-                        val myLocation = googleMap?.myLocation
-                        return@flatMap Observable.just(myLocation)
-                    }
-                    .retryWhen(RetryWithDelay(3, 300))
-                    .subscribe({ onReceivedLocation(it!!) }, { onPlaceReceiveError(); });
-        } else {
-            showGpsNotReady()
-            setUpMapIfNeeded()
-        }
+//        Toast.makeText(context, "Feature not ready", Toast.LENGTH_SHORT).show()
+        presenter.singleShot()
     }
 
-    override fun onReceivedLocation(location: Location) {
-        Handler(Looper.getMainLooper())
-                .post(Runnable {
-                    if (googleMap == null) {
-                        return@Runnable
-                    }
+    override fun onReceivedNukes(nukes: ArrayList<LatLng>?) {
+        if (googleMap == null) {
+            return
+        }
 
-                    val locationName = location.provider.trim { it <= ' ' }
+        val boundsPlacement = BombsPlacement(nukes)
 
-                    val pos = LatLng(location.latitude, location.longitude)
-                    googleMap!!.clear()
-                    googleMap!!.moveCamera(CameraUpdateFactory
-                            .newCameraPosition(CameraPosition(pos, 16f, 60f, Random().nextInt(360).toFloat())))
+        googleMap?.clear()
 
-                    googleMap!!.addMarker(
-                            MarkerOptions().alpha(0.7f).title(locationName)
-                                    .position(pos)
-                    )
-
-                    if (!locationName.isEmpty())
-                        showMessage(message = "Your location: $locationName")
-                })
+        for ((a, latLng) in boundsPlacement.locations.withIndex()) {
+            googleMap?.addMarker(MarkerCreator.create(resources, "$a", latLng))
+        }
+        googleMap?.setLatLngBoundsForCameraTarget(boundsPlacement.bounds)
     }
 
     override fun showGpsNotReady() {
@@ -87,7 +60,7 @@ class MapAroundFragment : BaseFragment<MainActivity>(), OnMapReadyCallback, MapA
     }
 
     override fun onPlaceReceiveError() {
-        finMeClicked.post({ showMessage("Failed get last location") })
+        finMeClicked.post({ showMessage("Failed get nukes") })
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, sis: Bundle?): View? {
@@ -95,7 +68,7 @@ class MapAroundFragment : BaseFragment<MainActivity>(), OnMapReadyCallback, MapA
 
         finMeClicked = contentView.findViewById(R.id.bottom_sheet_map_button)
         finMeClicked.setOnClickListener { findMeClicked() }
-        presenter.view = (this)
+        presenter.view = this
         return contentView
     }
 
@@ -105,16 +78,62 @@ class MapAroundFragment : BaseFragment<MainActivity>(), OnMapReadyCallback, MapA
     }
 
     internal fun setUpMapIfNeeded() {
-        mapFragment.getMapAsync(this)
+
+        if (mapFragment == null) {
+            mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        }
+
+        mapFragment?.getMapAsync(this)
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         this.googleMap = googleMap
+        googleMap.setOnMarkerClickListener { marker ->
+            val title = marker.title
+
+            presenter.requestMoveNuke(Integer.valueOf(title))
+
+            return@setOnMarkerClickListener true
+        }
+        presenter.startNukesInterval()
+    }
+
+    override fun showMoveNukeDialog(index: Int?) {
+        lastIndexInUse = index
+        val dialog = MoveNukeBottomDialog()
+        dialog.show(getParentActivity().supportFragmentManager, dialog.TAG)
 
     }
 
+
+    override fun onResume() {
+        super.onResume()
+        if (googleMap != null) {
+            presenter.startNukesInterval()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        presenter.stopNukesInterval()
+    }
+
+    override fun onMoveNuke(direction: NukeDirection) {
+        println("onMoveNuke $direction")
+        presenter.moveNuke(lastIndexInUse, direction)
+    }
+
+    override fun showPlacedNuke() {
+        finMeClicked.post({ showMessage("Nuke moved!") })
+    }
+
+    override fun onPlaceNukeError() {
+        finMeClicked.post({ showMessage("Failed to move nuke, try again later") })
+    }
+
+
     companion object {
-        val TAG = MapAroundFragment::class.java.simpleName!!
+        val TAG = MapAroundFragment::class.java.simpleName
 
         fun newInstance(): MapAroundFragment {
             return MapAroundFragment()

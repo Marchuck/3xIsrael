@@ -1,0 +1,88 @@
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="true"
+        android:fitsSystemWindows="true">
+
+        <RelativeLayout
+            android:id="@+id/move_nuke_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary">
+
+            <ImageView
+                android:id="@+id/move_nuke_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:paddingBottom="@dimen/medium_margin"
+                android:paddingTop="@dimen/medium_margin"
+                android:src="@drawable/arrow_left_white" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toRightOf="@+id/move_nuke_back"
+                android:text="move nuke"
+                android:textColor="@android:color/white"
+                android:textSize="22sp" />
+        </RelativeLayout>
+
+        <!--<TextView-->
+        <!--android:id="@+id/move_nuke_label"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_centerHorizontal="true"-->
+        <!--android:layout_margin="16dp"-->
+        <!--android:gravity="center"-->
+        <!--android:padding="16dp"-->
+        <!--android:text="move nuke"-->
+        <!--android:textColor="#000"-->
+        <!--android:textSize="18dp"-->
+        <!--android:textStyle="bold|italic" />-->
+
+
+        <ImageView
+            android:id="@+id/bomb"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_below="@+id/move_nuke_top"
+            android:layout_centerInParent="true"
+            app:srcCompat="@drawable/ic_bomb" />
+
+        <ImageView
+            android:id="@+id/move_nuke_right"
+            style="@style/bomb_arrow"
+            android:layout_below="@+id/move_nuke_top"
+            android:layout_toRightOf="@+id/bomb" />
+
+        <ImageView
+            android:id="@+id/move_nuke_left"
+            style="@style/bomb_arrow"
+            android:layout_below="@+id/move_nuke_top"
+            android:layout_toLeftOf="@+id/bomb"
+            android:rotation="180" />
+
+        <ImageView
+            android:id="@+id/move_nuke_top"
+            style="@style/bomb_arrow"
+            android:layout_below="@+id/move_nuke_label"
+            android:layout_centerInParent="true"
+            android:rotation="-90" />
+
+        <ImageView
+            android:id="@+id/move_nuke_bottom"
+            style="@style/bomb_arrow"
+            android:layout_below="@+id/bomb"
+            android:layout_centerInParent="true"
+            android:rotation="90" />
+
+    </RelativeLayout>
+
+</android.support.design.widget.CoordinatorLayout>

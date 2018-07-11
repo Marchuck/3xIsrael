@@ -1,19 +1,21 @@
 package com.marchuck.a3xisrael.map;
 
-import android.location.Location;
+import com.google.android.gms.maps.model.LatLng;
 
-/**
- * Project "Evalu"
- * <p>
- * Created by Lukasz Marczak
- * on 23.02.2017.
- */
+import java.util.ArrayList;
+
 
 public interface MapAroundView {
 
-    void onReceivedLocation(Location location);
+    void onReceivedNukes(ArrayList<LatLng> nukes);
 
     void showGpsNotReady();
 
     void onPlaceReceiveError();
+
+    void showMoveNukeDialog(Integer index);
+
+    void showPlacedNuke();
+
+    void onPlaceNukeError();
 }
